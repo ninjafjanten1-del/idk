@@ -20,13 +20,11 @@
       --border: #ffd84a;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background: radial-gradient(circle at top, #0a63aa 0%, var(--bg) 55%);
       color: var(--text);
       min-height: 100vh;
@@ -36,8 +34,8 @@
     }
 
     .app {
-      width: min(900px, 100%);
-      height: min(90vh, 780px);
+      width: min(950px, 100%);
+      height: min(92vh, 820px);
       background: color-mix(in srgb, var(--panel) 94%, black);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -56,22 +54,15 @@
       gap: 0.75rem;
     }
 
-    .topbar h1 {
-      margin: 0;
-      font-size: 1.05rem;
-      letter-spacing: 0.02em;
-    }
+    .topbar h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.02em; }
 
-    .setup-grid {
+    .auth-grid, .setup-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(120px, 1fr));
       gap: 0.6rem;
     }
 
-    .setup-grid input,
-    .composer input,
-    .composer button,
-    .setup-grid button {
+    input, button {
       border-radius: 10px;
       border: 1px solid var(--border);
       background: #003866;
@@ -80,13 +71,9 @@
       font-size: 0.92rem;
     }
 
-    .setup-grid input::placeholder,
-    .composer input::placeholder {
-      color: var(--muted);
-    }
+    input::placeholder { color: var(--muted); }
 
-    .setup-grid button,
-    .composer button {
+    button {
       background: var(--accent-strong);
       border: none;
       color: #003865;
@@ -94,10 +81,8 @@
       cursor: pointer;
     }
 
-    .setup-grid button:hover,
-    .composer button:hover {
-      filter: brightness(1.05);
-    }
+    button:hover { filter: brightness(1.05); }
+    button:disabled { opacity: .65; cursor: not-allowed; }
 
     .status {
       font-size: 0.82rem;
@@ -110,18 +95,10 @@
     }
 
     .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--danger);
-      display: inline-block;
-      margin-right: 0.35rem;
-      vertical-align: middle;
+      width: 8px; height: 8px; border-radius: 50%; background: var(--danger);
+      display: inline-block; margin-right: 0.35rem; vertical-align: middle;
     }
-
-    .dot.ok {
-      background: var(--ok);
-    }
+    .dot.ok { background: var(--ok); }
 
     .messages {
       overflow: auto;
@@ -143,12 +120,7 @@
       align-self: flex-start;
       word-break: break-word;
     }
-
-    .msg.self {
-      align-self: flex-end;
-      background: var(--self);
-      border-color: #155e75;
-    }
+    .msg.self { align-self: flex-end; background: var(--self); border-color: #155e75; }
 
     .meta {
       font-size: 0.72rem;
@@ -169,24 +141,11 @@
       background: rgba(0, 69, 124, 0.92);
     }
 
-    .helper {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.3rem;
-    }
+    .helper { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
 
-    @media (max-width: 760px) {
-      .app {
-        height: min(95vh, 900px);
-      }
-
-      .setup-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .msg {
-        max-width: 88%;
-      }
+    @media (max-width: 860px) {
+      .auth-grid, .setup-grid { grid-template-columns: 1fr 1fr; }
+      .msg { max-width: 88%; }
     }
   </style>
 </head>
@@ -194,17 +153,27 @@
   <main class="app">
     <header class="topbar">
       <h1>🔒 Private Live Chat</h1>
-      <div class="setup-grid">
-        <input id="nickname" maxlength="24" placeholder="Your nickname" />
-        <input id="room" maxlength="40" placeholder="Private room name" />
-        <input id="passphrase" type="password" placeholder="Shared passphrase" />
-        <button id="joinBtn">Join / Switch Room</button>
+
+      <div class="auth-grid">
+        <input id="authUsername" maxlength="24" placeholder="Username" />
+        <input id="authPassword" type="password" placeholder="Password" />
+        <button id="registerBtn" type="button">Register</button>
+        <button id="loginBtn" type="button">Login</button>
       </div>
+
+      <div class="setup-grid">
+        <input id="nickname" maxlength="24" placeholder="Display nickname (optional)" />
+        <input id="room" maxlength="40" placeholder="Private room name" />
+        <input id="passphrase" type="password" placeholder="Shared room passphrase" />
+        <button id="joinBtn" type="button" disabled>Join / Switch Room</button>
+      </div>
+
       <div class="status">
         <span id="connection"><span class="dot"></span>Not connected</span>
+        <span id="userInfo">User: not logged in</span>
         <span id="roomInfo">Room: —</span>
       </div>
-      <div class="helper">Open this page in another tab/device on same origin. Use the same room + passphrase to exchange encrypted real-time messages.</div>
+      <div class="helper">Accounts are stored in this browser (localStorage). Login first, then join a room to chat.</div>
     </header>
 
     <section id="messages" class="messages" aria-live="polite"></section>
@@ -216,17 +185,24 @@
   </main>
 
   <script>
+    const STORAGE_KEY = "private-chat.accounts.v1";
+    const SESSION_KEY = "private-chat.session-user.v1";
+
     const state = {
       nickname: "",
       room: "",
       passphrase: "",
+      account: null,
       channel: null,
       key: null,
       sessionId: crypto.randomUUID(),
-      joinedAt: Date.now(),
     };
 
     const ui = {
+      authUsername: document.getElementById("authUsername"),
+      authPassword: document.getElementById("authPassword"),
+      registerBtn: document.getElementById("registerBtn"),
+      loginBtn: document.getElementById("loginBtn"),
       nickname: document.getElementById("nickname"),
       room: document.getElementById("room"),
       passphrase: document.getElementById("passphrase"),
@@ -236,8 +212,25 @@
       messageInput: document.getElementById("messageInput"),
       sendBtn: document.getElementById("sendBtn"),
       connection: document.getElementById("connection"),
+      userInfo: document.getElementById("userInfo"),
       roomInfo: document.getElementById("roomInfo"),
     };
+
+    const loadAccounts = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const saveAccounts = (accounts) => localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+
+    function appendMessage({ sender, body, mine = false, createdAt = Date.now(), system = false }) {
+      const wrapper = document.createElement("article");
+      wrapper.className = `msg ${mine ? "self" : ""}`;
+      if (system) {
+        wrapper.style.opacity = "0.82";
+        wrapper.style.fontStyle = "italic";
+      }
+      const time = new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      wrapper.innerHTML = `<div class="meta"><span>${sender}</span><span>${time}</span></div><div>${body}</div>`;
+      ui.messages.appendChild(wrapper);
+      ui.messages.scrollTop = ui.messages.scrollHeight;
+    }
 
     function setConnection(connected, text) {
       ui.connection.innerHTML = `<span class="dot ${connected ? "ok" : ""}"></span>${text}`;
@@ -245,45 +238,27 @@
       ui.sendBtn.disabled = !connected;
     }
 
-    function appendMessage({ sender, body, mine = false, createdAt = Date.now(), system = false }) {
-      const wrapper = document.createElement("article");
-      wrapper.className = `msg ${mine ? "self" : ""}`;
+    function setAuthState() {
+      const loggedIn = !!state.account;
+      ui.userInfo.textContent = loggedIn ? `User: ${state.account}` : "User: not logged in";
+      ui.joinBtn.disabled = !loggedIn;
+      ui.authUsername.disabled = loggedIn;
+      ui.authPassword.disabled = loggedIn;
+      ui.registerBtn.disabled = loggedIn;
+      ui.loginBtn.textContent = loggedIn ? "Logout" : "Login";
+    }
 
-      if (system) {
-        wrapper.style.opacity = "0.82";
-        wrapper.style.fontStyle = "italic";
-      }
-
-      const time = new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      wrapper.innerHTML = `
-        <div class="meta">
-          <span>${sender}</span>
-          <span>${time}</span>
-        </div>
-        <div>${body}</div>
-      `;
-
-      ui.messages.appendChild(wrapper);
-      ui.messages.scrollTop = ui.messages.scrollHeight;
+    async function sha256Hex(value) {
+      const bytes = new TextEncoder().encode(value);
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     async function deriveAesKey(passphrase, room) {
       const enc = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        enc.encode(passphrase),
-        "PBKDF2",
-        false,
-        ["deriveKey"]
-      );
-
+      const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
       return crypto.subtle.deriveKey(
-        {
-          name: "PBKDF2",
-          salt: enc.encode(`room::${room}`),
-          iterations: 120000,
-          hash: "SHA-256",
-        },
+        { name: "PBKDF2", salt: enc.encode(`room::${room}`), iterations: 120000, hash: "SHA-256" },
         keyMaterial,
         { name: "AES-GCM", length: 256 },
         false,
@@ -295,7 +270,6 @@
       const bin = String.fromCharCode(...new Uint8Array(bytes));
       return btoa(bin);
     }
-
     function fromBase64(base64) {
       const bin = atob(base64);
       return Uint8Array.from(bin, c => c.charCodeAt(0));
@@ -305,34 +279,85 @@
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const plain = new TextEncoder().encode(JSON.stringify(data));
       const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain);
-      return {
-        iv: toBase64(iv),
-        data: toBase64(cipher),
-      };
+      return { iv: toBase64(iv), data: toBase64(cipher) };
     }
 
     async function decryptJson(payload, key) {
-      const plain = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: fromBase64(payload.iv) },
-        key,
-        fromBase64(payload.data)
-      );
+      const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64(payload.iv) }, key, fromBase64(payload.data));
       return JSON.parse(new TextDecoder().decode(plain));
     }
 
-    async function joinRoom() {
-      const nickname = ui.nickname.value.trim() || "Anonymous";
-      const room = ui.room.value.trim();
-      const passphrase = ui.passphrase.value;
-
-      if (!room || !passphrase) {
-        appendMessage({ sender: "System", body: "Enter both room and passphrase.", system: true });
+    async function registerAccount() {
+      const username = ui.authUsername.value.trim();
+      const password = ui.authPassword.value;
+      if (username.length < 3 || password.length < 6) {
+        appendMessage({ sender: "System", body: "Username must be at least 3 chars and password at least 6 chars.", system: true });
         return;
       }
 
-      if (state.channel) {
-        state.channel.close();
+      const accounts = loadAccounts();
+      if (accounts[username]) {
+        appendMessage({ sender: "System", body: "That username already exists.", system: true });
+        return;
       }
+
+      accounts[username] = { passwordHash: await sha256Hex(password), createdAt: Date.now() };
+      saveAccounts(accounts);
+      appendMessage({ sender: "System", body: `Account '${username}' created. Please login.`, system: true });
+      ui.authPassword.value = "";
+    }
+
+    async function loginOrLogout() {
+      if (state.account) {
+        state.account = null;
+        localStorage.removeItem(SESSION_KEY);
+        if (state.channel) state.channel.close();
+        state.channel = null;
+        state.key = null;
+        ui.roomInfo.textContent = "Room: —";
+        setConnection(false, "Not connected");
+        appendMessage({ sender: "System", body: "Logged out.", system: true });
+        setAuthState();
+        return;
+      }
+
+      const username = ui.authUsername.value.trim();
+      const password = ui.authPassword.value;
+      const accounts = loadAccounts();
+      if (!accounts[username]) {
+        appendMessage({ sender: "System", body: "Account not found.", system: true });
+        return;
+      }
+
+      const incomingHash = await sha256Hex(password);
+      if (incomingHash !== accounts[username].passwordHash) {
+        appendMessage({ sender: "System", body: "Invalid password.", system: true });
+        return;
+      }
+
+      state.account = username;
+      localStorage.setItem(SESSION_KEY, username);
+      ui.nickname.value = username;
+      ui.authPassword.value = "";
+      appendMessage({ sender: "System", body: `Logged in as ${username}.`, system: true });
+      setAuthState();
+    }
+
+    async function joinRoom() {
+      if (!state.account) {
+        appendMessage({ sender: "System", body: "Please login first.", system: true });
+        return;
+      }
+
+      const nickname = ui.nickname.value.trim() || state.account;
+      const room = ui.room.value.trim();
+      const passphrase = ui.passphrase.value;
+      if (!room || !passphrase) {
+        appendMessage({ sender: "System", body: "Enter both room and room passphrase.", system: true });
+        return;
+      }
+
+      if (state.channel) state.channel.close();
 
       state.nickname = nickname;
       state.room = room;
@@ -346,26 +371,26 @@
           if (data.sessionId === state.sessionId) return;
           appendMessage({ sender: data.sender, body: data.body, createdAt: data.createdAt });
         } catch {
-          // Ignore unreadable payloads (wrong passphrase or malformed message).
+          // wrong passphrase / malformed payload
         }
       };
 
       setConnection(true, "Secure channel active");
       ui.roomInfo.textContent = `Room: ${room}`;
-      ui.messages.replaceChildren();
-      appendMessage({ sender: "System", body: `Connected as ${nickname}. Messages are encrypted locally before broadcast.`, system: true });
+      appendMessage({ sender: "System", body: `Connected as ${nickname} (${state.account}).`, system: true });
     }
 
     async function sendMessage(event) {
       event.preventDefault();
       const body = ui.messageInput.value.trim();
-      if (!body || !state.channel || !state.key) return;
+      if (!body || !state.channel || !state.key || !state.account) return;
 
       const message = {
-        sender: state.nickname,
+        sender: `${state.nickname}`,
         body,
         createdAt: Date.now(),
         sessionId: state.sessionId,
+        account: state.account,
       };
 
       const payload = await encryptJson(message, state.key);
@@ -375,11 +400,26 @@
       ui.messageInput.focus();
     }
 
+    function restoreSession() {
+      const savedUser = localStorage.getItem(SESSION_KEY);
+      const accounts = loadAccounts();
+      if (savedUser && accounts[savedUser]) {
+        state.account = savedUser;
+        ui.authUsername.value = savedUser;
+        ui.nickname.value = savedUser;
+        appendMessage({ sender: "System", body: `Restored login for ${savedUser}.`, system: true });
+      }
+      setAuthState();
+    }
+
+    ui.registerBtn.addEventListener("click", registerAccount);
+    ui.loginBtn.addEventListener("click", loginOrLogout);
     ui.joinBtn.addEventListener("click", joinRoom);
     ui.composer.addEventListener("submit", sendMessage);
 
     setConnection(false, "Not connected");
-    appendMessage({ sender: "System", body: "Join a private room to start chatting in real time.", system: true });
+    appendMessage({ sender: "System", body: "Create an account or login, then join a private room.", system: true });
+    restoreSession();
   </script>
 </body>
 </html>
