@@ -1,357 +1,368 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="sv">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Private Live Chat</title>
+  <title>Enat Sverige</title>
+  <link rel="icon" type="image/x-icon" href="enat-sverige-logga.ico">
   <style>
-    :root {
-      --bg: #005293;
-      --panel: #00457c;
-      --panel-soft: #003e70;
-      --text: #fecb00;
-      --muted: #ffe173;
-      --accent: #fecb00;
-      --accent-strong: #ffd84a;
-      --danger: #ef4444;
-      --ok: #22c55e;
-      --self: #003865;
-      --other: #004274;
-      --border: #ffd84a;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-
     body {
+      font-family: sans-serif;
+      background-color: #003578;
+      color: #ffc200;
+      padding: 2rem;
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(circle at top, #0a63aa 0%, var(--bg) 55%);
-      color: var(--text);
-      min-height: 100dvh;
-      display: grid;
-      place-items: center;
+    }
+
+    .layout-container {
+      display: flex;
+      gap: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .sidebar-left {
+      flex: 0 0 260px;
+      order: 1;
+      background: #004a99;
       padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      text-align: left;
+      align-self: start;
     }
 
-    .app {
-      width: min(950px, 100%);
-      height: min(92dvh, 820px);
-      background: color-mix(in srgb, var(--panel) 94%, black);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    .main-content {
+      flex: 1;
+      order: 2;
+      min-width: 0;
     }
 
-    .topbar {
-      border-bottom: 1px solid var(--border);
-      background: rgba(0, 69, 124, 0.88);
-      backdrop-filter: blur(4px);
+   .sidebar-right {
+      flex: 0 0 260px;
+      order: 3;
+      background: transparent;
       padding: 1rem;
-      display: grid;
-      gap: 0.75rem;
-    }
+      text-align: left;
+      align-self: start;
+}
 
-    .topbar h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.02em; }
-
-    .auth-grid, .setup-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
-      gap: 0.6rem;
-    }
-
-    input, button {
-      min-height: 44px;
-      touch-action: manipulation;
+    .hello-box {
+      background: #ffc200;
+      color: #003578;
+      padding: 0.6rem 1rem;
       border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #003866;
-      color: var(--text);
-      padding: 0.6rem 0.75rem;
-      font-size: 0.92rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
     }
 
-    input::placeholder { color: var(--muted); }
+    @media (max-width: 980px) {
+      .layout-container {
+        flex-direction: column;
+      }
+      .sidebar-left,
+      .sidebar-right {
+        flex: 1 1 auto;
+        width: 100%;
+        align-self: stretch;
+        order: unset;
+      }
+    }
 
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    h2 {
+      font-size: 1.2rem;
+    }
+    form {
+      margin: 1rem auto;
+      background: #004a99;
+      padding: 1rem;
+      border-radius: 8px;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input,
+    select {
+      width: calc(100% - 10px);
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      background-color: #ffc200;
+      color: #003578;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
     button {
-      background: var(--accent-strong);
+      margin-top: 1rem;
+      padding: 10px 20px;
+      font-size: 1rem;
       border: none;
-      color: #003865;
-      font-weight: 700;
+      background-color: #336bb8;
+      color: white;
+      border-radius: 25px;
       cursor: pointer;
     }
-
-    button:hover { filter: brightness(1.05); }
-    button:disabled { opacity: .65; cursor: not-allowed; }
-
-    .status {
-      font-size: 0.82rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
+    button:hover {
+      background-color: #417fd1;
+    }
+    #message {
+      margin-top: 2rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    img {
+      max-width: 200px;
+      display: block;
+      margin: 0 auto 1rem auto;
+    }
+    .link {
+      font-size: 0.9rem;
+      color: #ffc200;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 0.5rem;
+    }
+    .login {
+      margin-top: 1rem;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      background-color: #336bb8;
+      color: white;
+      border-radius: 25px;
+      cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .member-btn {
+      all: unset;
+      display: inline-block;
+      width: auto;
+      background: #ffc200;
+      color: #003578;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+      transition: 0.2s ease;
     }
 
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--danger);
-      display: inline-block; margin-right: 0.35rem; vertical-align: middle;
+    .member-btn:hover {
+      transform: scale(1.04);
+      background: #ffd84d;
     }
-    .dot.ok { background: var(--ok); }
 
-    .messages {
-      overflow: auto;
+    /* Added chat feature block */
+    .chat-app {
+      margin: 1.2rem auto;
+      max-width: 900px;
+      background: #004a99;
+      border-radius: 10px;
+      border: 1px solid #336bb8;
       padding: 1rem;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(0,0,0,.25);
+    }
+    .chat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: .5rem;
+      margin-bottom: .5rem;
+    }
+    .chat-grid input, .chat-grid button { width: 100%; box-sizing: border-box; }
+    .chat-status { font-size: .9rem; margin: .35rem 0; }
+    .chat-messages {
+      height: 300px;
+      overflow: auto;
+      background: #003578;
+      border: 1px solid #336bb8;
+      border-radius: 8px;
+      padding: .6rem;
+      margin: .6rem 0;
       display: flex;
       flex-direction: column;
-      gap: 0.7rem;
-      background:
-        linear-gradient(rgba(0, 82, 147, 0.56), rgba(0, 82, 147, 0.44)),
-        repeating-linear-gradient(0deg, rgba(254,203,0,0.09), rgba(254,203,0,0.09) 1px, transparent 1px, transparent 26px);
+      gap: .45rem;
     }
-
-    .msg {
-      max-width: min(76%, 620px);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.6rem 0.75rem;
-      background: var(--other);
-      align-self: flex-start;
-      word-break: break-word;
+    .m {
+      background: #1f5fb1;
+      border-radius: 8px;
+      padding: .45rem .55rem;
+      max-width: 80%;
     }
-    .msg.self { align-self: flex-end; background: var(--self); border-color: #155e75; }
-
-    .meta {
-      font-size: 0.72rem;
-      color: #ffe173;
-      opacity: 0.82;
-      margin-bottom: 0.35rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.5rem;
+    .m.self { margin-left: auto; background: #2b6cc0; }
+    .m .meta { font-size: .75rem; opacity:.9; margin-bottom: .2rem; }
+    .chat-compose { display:grid; grid-template-columns: 1fr auto; gap:.5rem; }
+    @media (max-width: 980px) {
+      .chat-grid { grid-template-columns: 1fr 1fr; }
     }
-
-    .composer {
-      border-top: 1px solid var(--border);
-      padding: 0.8rem;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.6rem;
-      background: rgba(0, 69, 124, 0.92);
-    }
-
-    .helper { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
-
-    @media (max-width: 860px) {
-      body { padding: 0.5rem; }
-      .app {
-        width: 100%;
-        height: 100dvh;
-      }
-      .auth-grid, .setup-grid { grid-template-columns: 1fr 1fr; }
-      .msg { max-width: 88%; }
-    }
-
-    @media (max-width: 640px) {
-      body { padding: 0; }
-      .app {
-        width: 100vw;
-        height: 100dvh;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-
-      .topbar { padding: 0.75rem; gap: 0.55rem; }
-      .topbar h1 { font-size: 1rem; }
-      .helper { font-size: 0.74rem; }
-      .status { font-size: 0.75rem; gap: 0.4rem; }
-      .auth-grid, .setup-grid { grid-template-columns: 1fr; gap: 0.45rem; }
-
-      input, button {
-        font-size: 16px;
-        min-height: 46px;
-      }
-
-      .messages {
-        padding: 0.65rem;
-        gap: 0.55rem;
-      }
-
-      .msg {
-        max-width: 94%;
-        padding: 0.55rem 0.65rem;
-      }
-
-      .composer {
-        position: sticky;
-        bottom: 0;
-        grid-template-columns: 1fr;
-        padding: 0.65rem;
-        gap: 0.45rem;
-        padding-bottom: calc(0.65rem + env(safe-area-inset-bottom));
-      }
-
-      #sendBtn { width: 100%; }
+    @media (max-width: 680px) {
+      body { padding: .6rem; }
+      .chat-grid { grid-template-columns: 1fr; }
+      .chat-compose { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <h1>🔒 Private Live Chat</h1>
+  <a href="login.html" class="login" style="color: #ffc200; font-size: 1.2rem;">Logga in eller registrera dig</a>
+  <h1>ENAT SVERIGE</h1>
+  <img src="enat-sverige-logga.png" alt="Enat Sverige Logga" />
+  <div class="layout-container">
+    <aside class="sidebar-left">
+      <div class="hello-box">Kristenationalsocialism</div>
+      <h3>Vad är KNS?</h3>
+      <p>KNS är en ideologi som kombinerar nationell enhet, självständighet och kristna värderingar, med fokus på att bevara svensk kultur, stärka familjen och lösa samhällsproblem utan aggression mot andra länder. Inget mer inget mindre.</p>
+    </aside>
 
-      <div class="auth-grid">
-        <input id="authUsername" maxlength="24" placeholder="Username" autocomplete="username" autocapitalize="none" />
-        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
-        <button id="registerBtn" type="button">Register</button>
-        <button id="loginBtn" type="button">Login</button>
+    <main class="main-content">
+      <div style="max-width: 800px; margin: auto; padding: 20px; text-align: center;">
+        <h2>Om oss - Enat Sverige</h2>
+        <div id="om-oss-text">
+          <p><strong>Vår vision</strong></p>
+          <p>Enat Sverige är en organisation som arbetar för att förena det svenska folket genom en gemensam känsla av stolthet, identitet och samhörighet.</p>
+          <div id="rest-av-texten" style="display: none;">
+            <p><strong>Vårt syfte</strong></p>
+            <p>Vi strävar efter att bygga en organisation där svenskar kan mötas, dela sina åsikter och forma en framtid baserad på nationell enhet.</p>
+          </div>
+          <button onclick="toggleText()" id="lasMerBtn" style="margin-top: 10px;">Läs mer</button>
+        </div>
       </div>
 
-      <div class="setup-grid">
-        <input id="nickname" maxlength="24" placeholder="Display nickname (optional)" autocapitalize="words" />
-        <input id="room" maxlength="40" placeholder="Private room name" autocapitalize="none" />
-        <input id="passphrase" type="password" placeholder="Shared room passphrase" />
-        <button id="joinBtn" type="button" disabled>Join / Switch Room</button>
-      </div>
+      <section class="chat-app">
+        <h2 style="margin:0 0 .8rem 0;">Privat gruppchatt (krypterad)</h2>
+        <div class="chat-grid">
+          <input id="authUsername" placeholder="Användarnamn" maxlength="24" autocomplete="username" autocapitalize="none" />
+          <input id="authPassword" type="password" placeholder="Lösenord" autocomplete="current-password" />
+          <button id="registerBtn" type="button">Registrera</button>
+          <button id="loginBtn" type="button">Logga in</button>
+        </div>
+        <div class="chat-grid">
+          <input id="nickname" placeholder="Visningsnamn" maxlength="24" autocapitalize="words" />
+          <input id="room" placeholder="Grupp / Rum" maxlength="40" autocapitalize="none" />
+          <input id="passphrase" type="password" placeholder="Rums-lösenfras" />
+          <button id="joinBtn" type="button" disabled>Gå med / Byt rum</button>
+        </div>
+        <div class="chat-status" id="connection">● Inte ansluten</div>
+        <div class="chat-status" id="userInfo">Användare: ej inloggad</div>
+        <div class="chat-status" id="roomInfo">Rum: —</div>
 
-      <div class="status">
-        <span id="connection"><span class="dot"></span>Not connected</span>
-        <span id="userInfo">User: not logged in</span>
-        <span id="roomInfo">Room: —</span>
-      </div>
-      <div class="helper">Accounts are stored in this browser (localStorage). Login first, then join a room to chat.</div>
-    </header>
+        <section id="messages" class="chat-messages" aria-live="polite"></section>
 
-    <section id="messages" class="messages" aria-live="polite"></section>
+        <form id="composer" class="chat-compose" autocomplete="off">
+          <input id="messageInput" placeholder="Skriv ett meddelande..." enterkeyhint="send" disabled />
+          <button id="sendBtn" type="submit" disabled>Skicka</button>
+        </form>
+      </section>
+    </main>
 
-    <form id="composer" class="composer" autocomplete="off">
-      <input id="messageInput" placeholder="Type a message..." enterkeyhint="send" disabled />
-      <button type="submit" id="sendBtn" disabled>Send</button>
-    </form>
-  </main>
+    <aside class="sidebar-right">
+      <button class="member-btn" onclick="goToMember()">Hur blir jag medlem</button>
+    </aside>
+  </div>
 
   <script>
+    function toggleText() {
+      const restText = document.getElementById('rest-av-texten');
+      const btn = document.getElementById('lasMerBtn');
+      if (restText.style.display === 'none' || restText.style.display === '') {
+        restText.style.display = 'block';
+        btn.textContent = 'Visa mindre';
+      } else {
+        restText.style.display = 'none';
+        btn.textContent = 'Läs mer';
+      }
+    }
+    function goToMember() { window.location.href = "mem.html"; }
+
     const STORAGE_KEY = "private-chat.accounts.v1";
     const SESSION_KEY = "private-chat.session-user.v1";
     const HISTORY_KEY = "private-chat.histories.v1";
     const HISTORY_LIMIT = 200;
 
-    const state = {
-      nickname: "",
-      room: "",
-      passphrase: "",
-      account: null,
-      channel: null,
-      key: null,
-      sessionId: crypto.randomUUID(),
-    };
-
+    const state = { nickname: "", room: "", account: null, channel: null, key: null, sessionId: crypto.randomUUID() };
     const ui = {
-      authUsername: document.getElementById("authUsername"),
-      authPassword: document.getElementById("authPassword"),
-      registerBtn: document.getElementById("registerBtn"),
-      loginBtn: document.getElementById("loginBtn"),
-      nickname: document.getElementById("nickname"),
-      room: document.getElementById("room"),
-      passphrase: document.getElementById("passphrase"),
-      joinBtn: document.getElementById("joinBtn"),
-      messages: document.getElementById("messages"),
-      composer: document.getElementById("composer"),
-      messageInput: document.getElementById("messageInput"),
-      sendBtn: document.getElementById("sendBtn"),
-      connection: document.getElementById("connection"),
-      userInfo: document.getElementById("userInfo"),
-      roomInfo: document.getElementById("roomInfo"),
+      authUsername: document.getElementById("authUsername"), authPassword: document.getElementById("authPassword"),
+      registerBtn: document.getElementById("registerBtn"), loginBtn: document.getElementById("loginBtn"),
+      nickname: document.getElementById("nickname"), room: document.getElementById("room"), passphrase: document.getElementById("passphrase"),
+      joinBtn: document.getElementById("joinBtn"), messages: document.getElementById("messages"), composer: document.getElementById("composer"),
+      messageInput: document.getElementById("messageInput"), sendBtn: document.getElementById("sendBtn"),
+      connection: document.getElementById("connection"), userInfo: document.getElementById("userInfo"), roomInfo: document.getElementById("roomInfo"),
     };
 
     const loadAccounts = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    const saveAccounts = (accounts) => localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
-
+    const saveAccounts = (a) => localStorage.setItem(STORAGE_KEY, JSON.stringify(a));
     const loadHistories = () => JSON.parse(localStorage.getItem(HISTORY_KEY) || "{}");
-    const saveHistories = (histories) => localStorage.setItem(HISTORY_KEY, JSON.stringify(histories));
+    const saveHistories = (h) => localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
 
-    function persistRoomMessage(room, message) {
+    function persistRoomMessage(room, msg) {
       if (!room) return;
       const histories = loadHistories();
-      const roomHistory = histories[room] || [];
-      roomHistory.push({ sender: message.sender, body: message.body, createdAt: message.createdAt });
-      histories[room] = roomHistory.slice(-HISTORY_LIMIT);
+      const list = histories[room] || [];
+      list.push({ sender: msg.sender, body: msg.body, createdAt: msg.createdAt });
+      histories[room] = list.slice(-HISTORY_LIMIT);
       saveHistories(histories);
     }
-
-    function loadRoomHistory(room) {
-      const histories = loadHistories();
-      return histories[room] || [];
-    }
+    const loadRoomHistory = (room) => (loadHistories()[room] || []);
 
     function appendMessage({ sender, body, mine = false, createdAt = Date.now(), system = false }) {
-      const wrapper = document.createElement("article");
-      wrapper.className = `msg ${mine ? "self" : ""}`;
-      if (system) {
-        wrapper.style.opacity = "0.82";
-        wrapper.style.fontStyle = "italic";
-      }
-      const time = new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      wrapper.innerHTML = `<div class="meta"><span>${sender}</span><span>${time}</span></div><div>${body}</div>`;
-      ui.messages.appendChild(wrapper);
+      const e = document.createElement("article");
+      e.className = `m ${mine ? "self" : ""}`;
+      const t = new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      e.innerHTML = `<div class="meta">${sender} · ${t}</div><div>${body}</div>`;
+      if (system) e.style.opacity = "0.85";
+      ui.messages.appendChild(e);
       ui.messages.scrollTop = ui.messages.scrollHeight;
     }
 
     function setConnection(connected, text) {
-      ui.connection.innerHTML = `<span class="dot ${connected ? "ok" : ""}"></span>${text}`;
+      ui.connection.textContent = `${connected ? "●" : "●"} ${text}`;
+      ui.connection.style.color = connected ? "#9cf39c" : "#ffc200";
       ui.messageInput.disabled = !connected;
       ui.sendBtn.disabled = !connected;
     }
 
     function setAuthState() {
       const loggedIn = !!state.account;
-      ui.userInfo.textContent = loggedIn ? `User: ${state.account}` : "User: not logged in";
+      ui.userInfo.textContent = loggedIn ? `Användare: ${state.account}` : "Användare: ej inloggad";
       ui.joinBtn.disabled = !loggedIn;
       ui.authUsername.disabled = loggedIn;
       ui.authPassword.disabled = loggedIn;
       ui.registerBtn.disabled = loggedIn;
-      ui.loginBtn.textContent = loggedIn ? "Logout" : "Login";
+      ui.loginBtn.textContent = loggedIn ? "Logga ut" : "Logga in";
     }
 
-    async function sha256Hex(value) {
-      const bytes = new TextEncoder().encode(value);
-      const digest = await crypto.subtle.digest("SHA-256", bytes);
-      return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, "0")).join("");
+    async function sha256Hex(v) {
+      const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v));
+      return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
-
     async function deriveAesKey(passphrase, room) {
       const enc = new TextEncoder();
       const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
-      return crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt: enc.encode(`room::${room}`), iterations: 120000, hash: "SHA-256" },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt", "decrypt"]
-      );
+      return crypto.subtle.deriveKey({ name: "PBKDF2", salt: enc.encode(`room::${room}`), iterations: 120000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
     }
-
-    function toBase64(bytes) {
-      const bin = String.fromCharCode(...new Uint8Array(bytes));
-      return btoa(bin);
-    }
-    function fromBase64(base64) {
-      const bin = atob(base64);
-      return Uint8Array.from(bin, c => c.charCodeAt(0));
-    }
-
+    const toBase64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+    const fromBase64 = (b64) => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     async function encryptJson(data, key) {
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const plain = new TextEncoder().encode(JSON.stringify(data));
       const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain);
       return { iv: toBase64(iv), data: toBase64(cipher) };
     }
-
     async function decryptJson(payload, key) {
       const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: fromBase64(payload.iv) }, key, fromBase64(payload.data));
       return JSON.parse(new TextDecoder().decode(plain));
@@ -360,21 +371,13 @@
     async function registerAccount() {
       const username = ui.authUsername.value.trim();
       const password = ui.authPassword.value;
-      if (username.length < 3 || password.length < 6) {
-        appendMessage({ sender: "System", body: "Username must be at least 3 chars and password at least 6 chars.", system: true });
-        return;
-      }
-
-      const accounts = loadAccounts();
-      if (accounts[username]) {
-        appendMessage({ sender: "System", body: "That username already exists.", system: true });
-        return;
-      }
-
-      accounts[username] = { passwordHash: await sha256Hex(password), createdAt: Date.now() };
-      saveAccounts(accounts);
-      appendMessage({ sender: "System", body: `Account '${username}' created. Please login.`, system: true });
+      if (username.length < 3 || password.length < 6) return appendMessage({ sender: "System", body: "Minst 3 tecken användarnamn och 6 tecken lösenord.", system: true });
+      const acc = loadAccounts();
+      if (acc[username]) return appendMessage({ sender: "System", body: "Användarnamnet finns redan.", system: true });
+      acc[username] = { passwordHash: await sha256Hex(password), createdAt: Date.now() };
+      saveAccounts(acc);
       ui.authPassword.value = "";
+      appendMessage({ sender: "System", body: `Kontot '${username}' skapades.`, system: true });
     }
 
     async function loginOrLogout() {
@@ -384,54 +387,34 @@
         if (state.channel) state.channel.close();
         state.channel = null;
         state.key = null;
-        ui.roomInfo.textContent = "Room: —";
-        setConnection(false, "Not connected");
-        appendMessage({ sender: "System", body: "Logged out.", system: true });
-        setAuthState();
-        return;
+        ui.roomInfo.textContent = "Rum: —";
+        setConnection(false, "Inte ansluten");
+        appendMessage({ sender: "System", body: "Utloggad.", system: true });
+        return setAuthState();
       }
-
       const username = ui.authUsername.value.trim();
       const password = ui.authPassword.value;
-      const accounts = loadAccounts();
-      if (!accounts[username]) {
-        appendMessage({ sender: "System", body: "Account not found.", system: true });
-        return;
-      }
-
-      const incomingHash = await sha256Hex(password);
-      if (incomingHash !== accounts[username].passwordHash) {
-        appendMessage({ sender: "System", body: "Invalid password.", system: true });
-        return;
-      }
-
+      const acc = loadAccounts();
+      if (!acc[username]) return appendMessage({ sender: "System", body: "Kontot hittades inte.", system: true });
+      if ((await sha256Hex(password)) !== acc[username].passwordHash) return appendMessage({ sender: "System", body: "Fel lösenord.", system: true });
       state.account = username;
       localStorage.setItem(SESSION_KEY, username);
       ui.nickname.value = username;
       ui.authPassword.value = "";
-      appendMessage({ sender: "System", body: `Logged in as ${username}.`, system: true });
+      appendMessage({ sender: "System", body: `Inloggad som ${username}.`, system: true });
       setAuthState();
     }
 
     async function joinRoom() {
-      if (!state.account) {
-        appendMessage({ sender: "System", body: "Please login first.", system: true });
-        return;
-      }
-
+      if (!state.account) return appendMessage({ sender: "System", body: "Logga in först.", system: true });
       const nickname = ui.nickname.value.trim() || state.account;
       const room = ui.room.value.trim();
       const passphrase = ui.passphrase.value;
-      if (!room || !passphrase) {
-        appendMessage({ sender: "System", body: "Enter both room and room passphrase.", system: true });
-        return;
-      }
+      if (!room || !passphrase) return appendMessage({ sender: "System", body: "Fyll i rum och lösenfras.", system: true });
 
       if (state.channel) state.channel.close();
-
       state.nickname = nickname;
       state.room = room;
-      state.passphrase = passphrase;
       state.key = await deriveAesKey(passphrase, room);
       state.channel = new BroadcastChannel(`private-chat::${room}`);
 
@@ -440,36 +423,24 @@
           const data = await decryptJson(event.data, state.key);
           if (data.sessionId === state.sessionId) return;
           appendMessage({ sender: data.sender, body: data.body, createdAt: data.createdAt });
-          persistRoomMessage(state.room, data);
-        } catch {
-          // wrong passphrase / malformed payload
-        }
+          persistRoomMessage(room, data);
+        } catch {}
       };
 
-      setConnection(true, "Secure channel active");
-      ui.roomInfo.textContent = `Room: ${room}`;
+      setConnection(true, "Säker kanal aktiv");
+      ui.roomInfo.textContent = `Rum: ${room}`;
       ui.messages.replaceChildren();
-      const roomHistory = loadRoomHistory(room);
-      if (roomHistory.length) {
-        roomHistory.forEach((saved) => appendMessage({ sender: saved.sender, body: saved.body, createdAt: saved.createdAt }));
-        appendMessage({ sender: "System", body: `Loaded ${roomHistory.length} saved messages for this group chat.`, system: true });
-      }
-      appendMessage({ sender: "System", body: `Connected as ${nickname} (${state.account}).`, system: true });
+      const history = loadRoomHistory(room);
+      history.forEach(h => appendMessage({ sender: h.sender, body: h.body, createdAt: h.createdAt }));
+      if (history.length) appendMessage({ sender: "System", body: `Laddade ${history.length} sparade meddelanden.`, system: true });
+      appendMessage({ sender: "System", body: `Ansluten som ${nickname} (${state.account}).`, system: true });
     }
 
     async function sendMessage(event) {
       event.preventDefault();
       const body = ui.messageInput.value.trim();
       if (!body || !state.channel || !state.key || !state.account) return;
-
-      const message = {
-        sender: `${state.nickname}`,
-        body,
-        createdAt: Date.now(),
-        sessionId: state.sessionId,
-        account: state.account,
-      };
-
+      const message = { sender: state.nickname, body, createdAt: Date.now(), sessionId: state.sessionId, account: state.account };
       const payload = await encryptJson(message, state.key);
       state.channel.postMessage(payload);
       appendMessage({ ...message, mine: true });
@@ -479,13 +450,13 @@
     }
 
     function restoreSession() {
-      const savedUser = localStorage.getItem(SESSION_KEY);
-      const accounts = loadAccounts();
-      if (savedUser && accounts[savedUser]) {
-        state.account = savedUser;
-        ui.authUsername.value = savedUser;
-        ui.nickname.value = savedUser;
-        appendMessage({ sender: "System", body: `Restored login for ${savedUser}.`, system: true });
+      const u = localStorage.getItem(SESSION_KEY);
+      const acc = loadAccounts();
+      if (u && acc[u]) {
+        state.account = u;
+        ui.authUsername.value = u;
+        ui.nickname.value = u;
+        appendMessage({ sender: "System", body: `Återställde inloggning för ${u}.`, system: true });
       }
       setAuthState();
     }
@@ -495,9 +466,12 @@
     ui.joinBtn.addEventListener("click", joinRoom);
     ui.composer.addEventListener("submit", sendMessage);
 
-    setConnection(false, "Not connected");
-    appendMessage({ sender: "System", body: "Create an account or login, then join a private room.", system: true });
+    setConnection(false, "Inte ansluten");
+    appendMessage({ sender: "System", body: "Logga in/registrera dig och gå med i ett rum.", system: true });
     restoreSession();
   </script>
+
+  <footer style="margin-top: 2rem; text-align: center;">© 2025-<span id="y"></span> Enat Sverige. Alla rättigheter förbehållna.</footer>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
