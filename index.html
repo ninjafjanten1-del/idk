@@ -1,1 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Live Chat</title>
+  <style>
+    :root {
+      --bg: #005293;
+      --panel: #00457c;
+      --panel-soft: #003e70;
+      --text: #fecb00;
+      --muted: #ffe173;
+      --accent: #fecb00;
+      --accent-strong: #ffd84a;
+      --danger: #ef4444;
+      --ok: #22c55e;
+      --self: #003865;
+      --other: #004274;
+      --border: #ffd84a;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(circle at top, #0a63aa 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
+
+    .app {
+      width: min(900px, 100%);
+      height: min(90vh, 780px);
+      background: color-mix(in srgb, var(--panel) 94%, black);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 69, 124, 0.88);
+      backdrop-filter: blur(4px);
+      padding: 1rem;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .setup-grid input,
+    .composer input,
+    .composer button,
+    .setup-grid button {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #003866;
+      color: var(--text);
+      padding: 0.6rem 0.75rem;
+      font-size: 0.92rem;
+    }
+
+    .setup-grid input::placeholder,
+    .composer input::placeholder {
+      color: var(--muted);
+    }
+
+    .setup-grid button,
+    .composer button {
+      background: var(--accent-strong);
+      border: none;
+      color: #003865;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .setup-grid button:hover,
+    .composer button:hover {
+      filter: brightness(1.05);
+    }
+
+    .status {
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      display: inline-block;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+
+    .dot.ok {
+      background: var(--ok);
+    }
+
+    .messages {
+      overflow: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      background:
+        linear-gradient(rgba(0, 82, 147, 0.56), rgba(0, 82, 147, 0.44)),
+        repeating-linear-gradient(0deg, rgba(254,203,0,0.09), rgba(254,203,0,0.09) 1px, transparent 1px, transparent 26px);
+    }
+
+    .msg {
+      max-width: min(76%, 620px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.6rem 0.75rem;
+      background: var(--other);
+      align-self: flex-start;
+      word-break: break-word;
+    }
+
+    .msg.self {
+      align-self: flex-end;
+      background: var(--self);
+      border-color: #155e75;
+    }
+
+    .meta {
+      font-size: 0.72rem;
+      color: #ffe173;
+      opacity: 0.82;
+      margin-bottom: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .composer {
+      border-top: 1px solid var(--border);
+      padding: 0.8rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.6rem;
+      background: rgba(0, 69, 124, 0.92);
+    }
+
+    .helper {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        height: min(95vh, 900px);
+      }
+
+      .setup-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .msg {
+        max-width: 88%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>🔒 Private Live Chat</h1>
+      <div class="setup-grid">
+        <input id="nickname" maxlength="24" placeholder="Your nickname" />
+        <input id="room" maxlength="40" placeholder="Private room name" />
+        <input id="passphrase" type="password" placeholder="Shared passphrase" />
+        <button id="joinBtn">Join / Switch Room</button>
+      </div>
+      <div class="status">
+        <span id="connection"><span class="dot"></span>Not connected</span>
+        <span id="roomInfo">Room: —</span>
+      </div>
+      <div class="helper">Open this page in another tab/device on same origin. Use the same room + passphrase to exchange encrypted real-time messages.</div>
+    </header>
+
+    <section id="messages" class="messages" aria-live="polite"></section>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <input id="messageInput" placeholder="Type a message..." disabled />
+      <button type="submit" id="sendBtn" disabled>Send</button>
+    </form>
+  </main>
+
+  <script>
+    const state = {
+      nickname: "",
+      room: "",
+      passphrase: "",
+      channel: null,
+      key: null,
+      sessionId: crypto.randomUUID(),
+      joinedAt: Date.now(),
+    };
+
+    const ui = {
+      nickname: document.getElementById("nickname"),
+      room: document.getElementById("room"),
+      passphrase: document.getElementById("passphrase"),
+      joinBtn: document.getElementById("joinBtn"),
+      messages: document.getElementById("messages"),
+      composer: document.getElementById("composer"),
+      messageInput: document.getElementById("messageInput"),
+      sendBtn: document.getElementById("sendBtn"),
+      connection: document.getElementById("connection"),
+      roomInfo: document.getElementById("roomInfo"),
+    };
+
+    function setConnection(connected, text) {
+      ui.connection.innerHTML = `<span class="dot ${connected ? "ok" : ""}"></span>${text}`;
+      ui.messageInput.disabled = !connected;
+      ui.sendBtn.disabled = !connected;
+    }
+
+    function appendMessage({ sender, body, mine = false, createdAt = Date.now(), system = false }) {
+      const wrapper = document.createElement("article");
+      wrapper.className = `msg ${mine ? "self" : ""}`;
+
+      if (system) {
+        wrapper.style.opacity = "0.82";
+        wrapper.style.fontStyle = "italic";
+      }
+
+      const time = new Date(createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      wrapper.innerHTML = `
+        <div class="meta">
+          <span>${sender}</span>
+          <span>${time}</span>
+        </div>
+        <div>${body}</div>
+      `;
+
+      ui.messages.appendChild(wrapper);
+      ui.messages.scrollTop = ui.messages.scrollHeight;
+    }
+
+    async function deriveAesKey(passphrase, room) {
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        enc.encode(passphrase),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+      );
+
+      return crypto.subtle.deriveKey(
+        {
+          name: "PBKDF2",
+          salt: enc.encode(`room::${room}`),
+          iterations: 120000,
+          hash: "SHA-256",
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    function toBase64(bytes) {
+      const bin = String.fromCharCode(...new Uint8Array(bytes));
+      return btoa(bin);
+    }
+
+    function fromBase64(base64) {
+      const bin = atob(base64);
+      return Uint8Array.from(bin, c => c.charCodeAt(0));
+    }
+
+    async function encryptJson(data, key) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const plain = new TextEncoder().encode(JSON.stringify(data));
+      const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plain);
+      return {
+        iv: toBase64(iv),
+        data: toBase64(cipher),
+      };
+    }
+
+    async function decryptJson(payload, key) {
+      const plain = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: fromBase64(payload.iv) },
+        key,
+        fromBase64(payload.data)
+      );
+      return JSON.parse(new TextDecoder().decode(plain));
+    }
+
+    async function joinRoom() {
+      const nickname = ui.nickname.value.trim() || "Anonymous";
+      const room = ui.room.value.trim();
+      const passphrase = ui.passphrase.value;
+
+      if (!room || !passphrase) {
+        appendMessage({ sender: "System", body: "Enter both room and passphrase.", system: true });
+        return;
+      }
+
+      if (state.channel) {
+        state.channel.close();
+      }
+
+      state.nickname = nickname;
+      state.room = room;
+      state.passphrase = passphrase;
+      state.key = await deriveAesKey(passphrase, room);
+      state.channel = new BroadcastChannel(`private-chat::${room}`);
+
+      state.channel.onmessage = async (event) => {
+        try {
+          const data = await decryptJson(event.data, state.key);
+          if (data.sessionId === state.sessionId) return;
+          appendMessage({ sender: data.sender, body: data.body, createdAt: data.createdAt });
+        } catch {
+          // Ignore unreadable payloads (wrong passphrase or malformed message).
+        }
+      };
+
+      setConnection(true, "Secure channel active");
+      ui.roomInfo.textContent = `Room: ${room}`;
+      ui.messages.replaceChildren();
+      appendMessage({ sender: "System", body: `Connected as ${nickname}. Messages are encrypted locally before broadcast.`, system: true });
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+      const body = ui.messageInput.value.trim();
+      if (!body || !state.channel || !state.key) return;
+
+      const message = {
+        sender: state.nickname,
+        body,
+        createdAt: Date.now(),
+        sessionId: state.sessionId,
+      };
+
+      const payload = await encryptJson(message, state.key);
+      state.channel.postMessage(payload);
+      appendMessage({ ...message, mine: true });
+      ui.messageInput.value = "";
+      ui.messageInput.focus();
+    }
+
+    ui.joinBtn.addEventListener("click", joinRoom);
+    ui.composer.addEventListener("submit", sendMessage);
+
+    setConnection(false, "Not connected");
+    appendMessage({ sender: "System", body: "Join a private room to start chatting in real time.", system: true });
+  </script>
+</body>
+</html>
