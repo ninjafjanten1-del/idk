@@ -187,6 +187,8 @@
   <script>
     const STORAGE_KEY = "private-chat.accounts.v1";
     const SESSION_KEY = "private-chat.session-user.v1";
+    const HISTORY_KEY = "private-chat.histories.v1";
+    const HISTORY_LIMIT = 200;
 
     const state = {
       nickname: "",
@@ -218,6 +220,23 @@
 
     const loadAccounts = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     const saveAccounts = (accounts) => localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+
+    const loadHistories = () => JSON.parse(localStorage.getItem(HISTORY_KEY) || "{}");
+    const saveHistories = (histories) => localStorage.setItem(HISTORY_KEY, JSON.stringify(histories));
+
+    function persistRoomMessage(room, message) {
+      if (!room) return;
+      const histories = loadHistories();
+      const roomHistory = histories[room] || [];
+      roomHistory.push({ sender: message.sender, body: message.body, createdAt: message.createdAt });
+      histories[room] = roomHistory.slice(-HISTORY_LIMIT);
+      saveHistories(histories);
+    }
+
+    function loadRoomHistory(room) {
+      const histories = loadHistories();
+      return histories[room] || [];
+    }
 
     function appendMessage({ sender, body, mine = false, createdAt = Date.now(), system = false }) {
       const wrapper = document.createElement("article");
@@ -370,6 +389,7 @@
           const data = await decryptJson(event.data, state.key);
           if (data.sessionId === state.sessionId) return;
           appendMessage({ sender: data.sender, body: data.body, createdAt: data.createdAt });
+          persistRoomMessage(state.room, data);
         } catch {
           // wrong passphrase / malformed payload
         }
@@ -377,6 +397,12 @@
 
       setConnection(true, "Secure channel active");
       ui.roomInfo.textContent = `Room: ${room}`;
+      ui.messages.replaceChildren();
+      const roomHistory = loadRoomHistory(room);
+      if (roomHistory.length) {
+        roomHistory.forEach((saved) => appendMessage({ sender: saved.sender, body: saved.body, createdAt: saved.createdAt }));
+        appendMessage({ sender: "System", body: `Loaded ${roomHistory.length} saved messages for this group chat.`, system: true });
+      }
       appendMessage({ sender: "System", body: `Connected as ${nickname} (${state.account}).`, system: true });
     }
 
@@ -396,6 +422,7 @@
       const payload = await encryptJson(message, state.key);
       state.channel.postMessage(payload);
       appendMessage({ ...message, mine: true });
+      persistRoomMessage(state.room, message);
       ui.messageInput.value = "";
       ui.messageInput.focus();
     }
